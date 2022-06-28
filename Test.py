@@ -5,8 +5,10 @@ from scipy.ndimage import gaussian_filter
 import json
 import matplotlib.cm as cm
 from urllib.request import urlopen
+from statistics import mean
 import seaborn as sns; sns.set_theme()
 import pandas as pd
+
 
 class Fixations:
     def __init__(self):
@@ -146,7 +148,7 @@ HM.imshow(map_img,
 plt.show()
 
 print(max(fixation_data.duration))
-print((fixation_data.duration))
+print(mean(fixation_data.duration))
 
 ## Write frame numbers and coordinates to output file (this corresponds to the first five minutes of Anthony's video)
 # outF = open("Fixations.txt", "w")
