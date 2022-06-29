@@ -10,7 +10,6 @@ from statistics import mean
 import seaborn as sns; sns.set_theme()
 import pandas as pd
 
-
 class Fixations:
     def __init__(self):
         self.num_fixations = 0
@@ -135,32 +134,30 @@ heat_map_data = np.zeros((1080,1920))
 
 ## According to PDF, each visual degree corresponds to 30-60 pixels
 radius = 45 #30*2
+blur_thresholds = [1,2,3]
 
-a = np.array([4,2])
-b = np.array([3,6])
-
-print(np.linalg.norm(a-b))
-
+###Adjustments to coordinates needed to draw a circle from each fixation coordinate
 coord_offset = ([])
 
 for x_offset in range(radius+1):
     for y_offset in range(radius+1):
         a = np.array([x_offset,y_offset])
         if(np.linalg.norm(a) <= radius):
-            #print([-x_offset, -y_offset], [x_offset, y_offset], np.linalg.norm(a))
             coord_offset.append([-x_offset, -y_offset])
             coord_offset.append([x_offset, y_offset])
 
         a = np.array([-x_offset, y_offset])
         if (np.linalg.norm(a) <= radius):
-            #print([-x_offset, y_offset], [x_offset, -y_offset], np.linalg.norm(a))
             coord_offset.append([-x_offset, y_offset])
             coord_offset.append([x_offset, -y_offset])
 
 
 coord = np.array([0,0])
 
-for i in  range(60): #range(fixation_data.num_fixations):# range(1):
+### Need to associated a blur level wtih each coordinate within a certain distance of each fixation point
+##blur_data = set([])
+
+for i in range(60): #range(fixation_data.num_fixations):# range(1):
     #print(int(fixation_data.xy[i][1]),int(fixation_data.xy[i][0]))
     fixation_coords = np.array([int(fixation_data.xy[i][1]),int(fixation_data.xy[i][0])])
 
@@ -169,88 +166,10 @@ for i in  range(60): #range(fixation_data.num_fixations):# range(1):
         coord = np.array([int(fixation_data.xy[i][1]) + offset[0], int(fixation_data.xy[i][0]) + offset[1]])
         if (coord[0] >= 0 and coord[0] < 1080 and coord[1] >= 0 and coord[1] < 1920):
             heat_map_data[coord[0],coord[1]] = 1.0
-        else:
-            print(coord)
-
-
-        #if int(fixation_data.xy[i][1] + coord[0] >=
-
-
-        #) >= 0 and int(fixation_data.xy[i][1])<=
-
-
-#     heat_map_data[int(fixation_data.xy[i][1]),int(fixation_data.xy[i][0])] = 1.0
-#     a = np.array([fixation_data.xy[i][1], fixation_data.xy[i][0]])
-#     if (i==0):
-#         print("Original pixel coordinates: [" + str(fixation_data.xy[i][1]) + "," + str(fixation_data.xy[i][0]) + "]")
-
-# for i in range(fixation_data.num_fixations):
-#     heat_map_data[round(fixation_data.xy[i][1]),round(fixation_data.xy[i][0])] = 1.0
 
 
 
 
-
-# for i in range(1080):
-#     for j in range(1920):
-#         a = np.array([i, j])
-#         for k in range(2):#fixation_data.num_fixations):
-#             b = np.array([fixation_data.xy[k][1], fixation_data.xy[k][0]])
-#             #if (np.linalg.norm(a - b) <= radius):
-#
-#             d = distance.euclidean(a, b)
-#             if (d<= radius):
-#                 heat_map_data[int(fixation_data.xy[k][1]), int(fixation_data.xy[k][0])] = 1.0
-#                 print(a, d)
-#                 #break
-
-
-
-
-
-# for i in range(fixation_data.num_fixations):
-#     heat_map_data[int(fixation_data.xy[i][1]),int(fixation_data.xy[i][0])] = 1.0
-#     a = np.array([fixation_data.xy[i][1], fixation_data.xy[i][0]])
-#     if (i==0):
-#         print("Original pixel coordinates: [" + str(fixation_data.xy[i][1]) + "," + str(fixation_data.xy[i][0]) + "]")
-#         for x_coord in range(1,radius+1):
-#             for y_coord in range(1,radius+1):
-#                 print("[" + str(fixation_data.xy[i][1] - x_coord) + "," + str(fixation_data.xy[i][0] - y_coord) + "]")
-#                 print("[" + str(fixation_data.xy[i][1] - x_coord) + "," + str(fixation_data.xy[i][0] + y_coord) + "]")
-#                 print("[" + str(fixation_data.xy[i][1] + x_coord) + "," + str(fixation_data.xy[i][0] - y_coord) + "]")
-#                 print("[" + str(fixation_data.xy[i][1] + x_coord) + "," + str(fixation_data.xy[i][0] + y_coord) + "]")
-#                 b = np.array([fixation_data.xy[i-1][1] - x_coord, fixation_data.xy[i-1][0] - y_coord])
-#                 if(np.linalg.norm(a - b) <= radius):
-#                     heat_map_data[int(fixation_data.xy[i-1][1] - x_coord), int( fixation_data.xy[i-1][0] - y_coord)] = 1.0
-#
-#                 # b = np.array([fixation_data.xy[i - 1][1] - x_coord, fixation_data.xy[i - 1][0] + y_coord])
-#                 # if (np.linalg.norm(a - b) <= radius):
-#                 #     heat_map_data[int(fixation_data.xy[i - 1][1] - x_coord), int(fixation_data.xy[i - 1][0] + y_coord)] = 1.0
-#
-#                 # b = np.array([fixation_data.xy[i - 1][1] + x_coord, fixation_data.xy[i - 1][0] - y_coord])
-#                 # if (np.linalg.norm(a - b) <= radius):
-#                 #     heat_map_data[
-#                 #         int(fixation_data.xy[i - 1][1] + x_coord), int(fixation_data.xy[i - 1][0] - y_coord)] = 1.0
-#
-#                 # b = np.array([fixation_data.xy[i - 1][1] + x_coord, fixation_data.xy[i - 1][0] + y_coord])
-#                 # if (np.linalg.norm(a - b) <= radius):
-#                 #     heat_map_data[
-#                 #         int(fixation_data.xy[i - 1][1] + x_coord), int(fixation_data.xy[i - 1][0] + y_coord)] = 1.0
-#
-#     #if (i>0):
-#     #    a = np.array([fixation_data.xy[i][1], fixation_data.xy[i][0]])
-#     #    b = np.array([fixation_data.xy[i-1][1], fixation_data.xy[i-1][0]])
-#     #    print(np.linalg.norm(a - b))
-#
-#     #for x_coord in range(radius):
-#     #    for y_coord in range(radius):
-#     #        print(xy[i])
-#
-#             #if fixation_data.xy[i][0]+
-
-
-
-#HM = sns.heatmap(heat_map_data, cmap="PiYG")
 HM = sns.heatmap(heat_map_data, alpha=0.6, zorder=2) ## alpha controls how visible the fixation data is atop the image
 
 map_img = mpimg.imread('Background_Image.PNG')
