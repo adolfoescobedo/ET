@@ -1,8 +1,0 @@
-## Get starting/ending frames of each fixation; first extract what second it is and multiply by 25.95; then calculate how frames there are in the fraction of a second
-        for i in range(self.num_fixations):
-            self.start_frame[i] = round(25.95 * int(data_frame.at[self.start_row[i], 'Timestamp'] / 1000))
-            self.start_frame[i] = self.start_frame[i] + int(
-                int(data_frame.at[self.start_row[i], 'Timestamp']) % 1000 / 25.95)
-
-            self.end_frame[i] = round(25.95 * int(data_frame.at[self.end_row[i], 'Timestamp'] / 1000))
-            self.end_frame[i] = self.end_frame[i] + int(int(data_frame.at[self.end_row[i], 'Timestamp']) % 1000 / 25.95)
