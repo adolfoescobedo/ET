@@ -122,76 +122,54 @@ fixation_data = Fixations(6209)
 ## Retrieve instance data from Excel file
 fixation_data.get_eye_tracking_data(df_ext)
 
-#for i in range(fixation_data.num_fixations):
-#for i in range(665):
-    #print("Fixation #" + str(i+1) + ". Calculated Duration:" + str(fixation_data.duration_calculated[i]) + ". Actual Duration:" + str(fixation_data.duration[i]))
-    #print("Fixation #" + str(i+1) + ". Frame start:" + str(fixation_data.start_frame[i]) + ". Frame end:" + str(fixation_data.end_frame[i]) + ".")
-    #print("Fixation #" + str(i+1) + ". (" + str(fixation_data.xy[i][0]) + ", " + str(fixation_data.xy[i][1]) + ")")
-    #print("Fixation #" + str(i+1) + ". Dispersion:" + str(fixation_data.dispersion[i]))
+#for i in range(fixation_data.num_fixations): ## Code below is for seeing frame information of each fixation
+for i in range(3):
+    print("Fixation #" + str(i+1) + ". Calculated Duration:" + str(fixation_data.duration_calculated[i]) + ". Actual Duration:" + str(fixation_data.duration[i]))
+    print("Fixation #" + str(i+1) + ". Frame start:" + str(fixation_data.start_frame[i]) + ". Frame end:" + str(fixation_data.end_frame[i]) + ".")
+    print("Fixation #" + str(i+1) + ". (" + str(fixation_data.xy[i][0]) + ", " + str(fixation_data.xy[i][1]) + ")")
+    print("Fixation #" + str(i+1) + ". Dispersion:" + str(fixation_data.dispersion[i]))
 
-## Create and display heat map of the discrete fixations
-heat_map_data = np.zeros((1080,1920))
+## Defines how many frames Gaussian blur will be performed over
+num_frames = 60
 
-## According to PDF, each visual degree corresponds to 30-60 pixels
-radius = 45 #30*2
-blur_thresholds = [1,2,3]
-
-###Adjustments to coordinates needed to draw a circle from each fixation coordinate
-coord_offset = ([])
-
-for x_offset in range(radius+1):
-    for y_offset in range(radius+1):
-        a = np.array([x_offset,y_offset])
-        if(np.linalg.norm(a) <= radius):
-            coord_offset.append([-x_offset, -y_offset])
-            coord_offset.append([x_offset, y_offset])
-
-        a = np.array([-x_offset, y_offset])
-        if (np.linalg.norm(a) <= radius):
-            coord_offset.append([-x_offset, y_offset])
-            coord_offset.append([x_offset, -y_offset])
+frame_sigma = 5 ## Time-dimension sigma for Gaussian blur; since Gaussian blur is applied over 4 sigma, this seemed like a good value
+pixel_sigma = 45 ## x,y - dimension sigma for Gaussian blur; each visual degree translates to roughly 30-60 pixels (chose range midpoint as the default)
 
 
-coord = np.array([0,0])
+## Create one heat map for each frame
+blur_map = np.zeros((num_frames, 1080,1920))
 
-### Need to associated a blur level wtih each coordinate within a certain distance of each fixation point
-##blur_data = set([])
+for i in range(fixation_data.num_fixations):
+    if (fixation_data.start_frame[i] < num_frames): ## Include only fixations contained within the first num_frames
+        for f in range(fixation_data.start_frame[i],min(fixation_data.end_frame[i],num_frames)): ## Plot fixation onto relevant frames
+            blur_map[f,int(fixation_data.xy[i][1]), int(fixation_data.xy[i][0])] = 10000.0 ## Note: Assign a large number to the discrete fixation point so that when Gaussian blur spreads volume, the values assigned to each frame are not too small
 
-for i in range(60): #range(fixation_data.num_fixations):# range(1):
-    #print(int(fixation_data.xy[i][1]),int(fixation_data.xy[i][0]))
-    fixation_coords = np.array([int(fixation_data.xy[i][1]),int(fixation_data.xy[i][0])])
+## Apply 3D Gaussian filter
+## The first sigma refers to number of frames (i.e., this is the time dimension); the other two refer to number of pixels along x and y axes
+blur_map = gaussian_filter(blur_map, sigma=[5,pixel_sigma,pixel_sigma])
 
-   #print(int(fixation_data.xy[0][1]), int(fixation_data.xy[0][0]))
-    for offset in coord_offset:
-        coord = np.array([int(fixation_data.xy[i][1]) + offset[0], int(fixation_data.xy[i][0]) + offset[1]])
-        if (coord[0] >= 0 and coord[0] < 1080 and coord[1] >= 0 and coord[1] < 1920):
-            heat_map_data[coord[0],coord[1]] = 1.0
+## Normalize values over all blur_maps so that highest value is 1.0
+max_blur = np.amax(blur_map)
+print(max_blur)
 
+for f in range(num_frames):
+    for i in range(1080):
+        for j in range(1920):
+            if (blur_map[f,i,j] > .0001):
+                blur_map[f,i,j] = blur_map[f,i,j]/max_blur
 
+## output one heat map per frame and overlay onto an image
+for f in range(num_frames):
 
+    HM = sns.heatmap(blur_map[f], alpha=0.6, zorder=2)
 
-HM = sns.heatmap(heat_map_data, alpha=0.6, zorder=2) ## alpha controls how visible the fixation data is atop the image
+    map_img = mpimg.imread('Background_Image.PNG')
 
-map_img = mpimg.imread('Background_Image.PNG')
+    HM.imshow(map_img,
+              aspect = HM.get_aspect(),
+              extent = HM.get_xlim() + HM.get_ylim(),
+              zorder = 1) ##puts the map under the heatmap
 
-HM.imshow(map_img,
-          aspect = HM.get_aspect(),
-          extent = HM.get_xlim() + HM.get_ylim(),
-          zorder = 1) ##puts the map under the heatmap
+    plt.savefig('blur_' + str(f) + '.png') ## Feel free to change the naming format
 
-plt.show()
-
-#print(max(fixation_data.duration))
-#print(mean(fixation_data.duration))
-
-## Write frame numbers and coordinates to output file (this corresponds to the first five minutes of Anthony's video)
-# outF = open("Fixations.txt", "w")
-#
-# for i in range(665):
-#     for j in range(fixation_data.end_frame[i]-fixation_data.start_frame[i]):
-#         outF.write(str(fixation_data.start_frame[i]-1+j) + "\t")
-#         outF.write(str(fixation_data.xy[i][0]) + "\t")
-#         outF.write(str(fixation_data.xy[i][1]) + "\n")
-#     #outF.write("\n")
-#
-# outF.close()
+    plt.close()## this avoids creating images with multiple heat map legends
