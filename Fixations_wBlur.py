@@ -146,7 +146,7 @@ for i in range(fixation_data.num_fixations):
 
 ## Apply 3D Gaussian filter
 ## The first sigma refers to number of frames (i.e., this is the time dimension); the other two refer to number of pixels along x and y axes
-blur_map = gaussian_filter(blur_map, sigma=[5,pixel_sigma,pixel_sigma])
+blur_map = gaussian_filter(blur_map, sigma=[frame_sigma,pixel_sigma,pixel_sigma])
 
 ## Normalize values over all blur_maps so that highest value is 1.0
 max_blur = np.amax(blur_map)
